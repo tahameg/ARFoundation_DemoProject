@@ -20,11 +20,14 @@ namespace OrbDemo.Gameplay
         [SerializeField]
         ARSessionOrigin m_arOrigin;
         [SerializeField]
-        ARSession m_arSession;
-        [SerializeField]
         UIManager m_uiManager;
         [SerializeField]
         PlaneHealthChecker m_planeHealthChecker;
+        [SerializeField]
+        ARPlaneManager m_planeManager;
+        
+        public PlayStateController PlayStateController;
+        public ARObjectManager ObjectManager;
         public GameState State { get; private set; }
         public static GameplayManager Instance;
 
@@ -41,7 +44,9 @@ namespace OrbDemo.Gameplay
         public void Start()
         {
             State = GameState.Start;
-            m_arSession.enabled = false;
+            m_planeManager.enabled = false;
+            PlayStateController.enabled = false;
+            ObjectManager.Initialize();
             if(Instance == null)
             {
                 Instance = this;
@@ -71,16 +76,20 @@ namespace OrbDemo.Gameplay
             }
             m_uiManager.SetUIState(State, GameState.RoomScanning);
             SetGameState(GameState.RoomScanning);
-            m_arSession.enabled = true;
+            m_planeManager.enabled = true;
             m_planeHealthChecker.StartPlaneHealthCheck();
             while (!m_planeHealthChecker.IsPlaneCheckComplete)
             {
                 yield return null;
             }
-            //Do Other Stuff
             m_uiManager.SetUIState(State, GameState.Play);
             SetGameState(GameState.Play);
-            //Do play stuff
+            PlayStateController.enabled = true;
+            m_planeManager.enabled = false;
+            foreach(var t in m_planeManager.trackables)
+            {
+                t.GetComponent<MeshRenderer>().enabled = false;
+            }
 
         }
     }
